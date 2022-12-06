@@ -2,6 +2,7 @@
 export const add = (x, y) => x + y
 
 const objectIsResource = (predicate) => predicate.endsWith(' :')
+const objectIsLiteral = (predicate) => predicate.endsWith(` '`)
 const objectHasLang = (predicate) => predicate.includes(' @')
 const objectHasType = (predicate) => predicate.includes(' ^')
 
@@ -14,6 +15,9 @@ const reducer = (subject) => (acc, cur, i) => {
     case objectIsResource(cur[0]):
       predicate = cur[0].split(' :')[0]
       return `${acc}<${subject}> ${predicate} <${cur[1]}> . `
+    case objectIsLiteral(cur[0]):
+      predicate = cur[0].split(` '`)[0]
+      return `${acc}<${subject}> ${predicate} "${cur[1]}" . `
     case objectHasLang(cur[0]):
       predicate = cur[0].split(' @')[0]
       lang = cur[0].split(' @')[1]
@@ -22,14 +26,11 @@ const reducer = (subject) => (acc, cur, i) => {
       predicate = cur[0].split(' ^')[0]
       type = cur[0].split(' ^')[1]
       return `${acc}<${subject}> ${predicate} "${cur[1]}"^^${type} . `
-    case !objectIsResource(cur[0]):
+    default:
       predicate = cur[0]
       return `${acc}<${subject}> ${predicate} "${cur[1]}" . `
-    default:
-      break;
   }
 }
-
 const reduceEntries = (subject, formData) => [...formData.entries()].reduce(reducer(subject), '')
 
 const rdfkv = (subject, formData) => {

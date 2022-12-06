@@ -24,7 +24,7 @@ describe('Convert Simple Form to RDF Triples', () => {
 	// </form>
 	// will produce:
 	// <http://example.com/my/resource> dct:title "Whatever you wrote" .
-	it('With provided literal values', () => {
+	it('With default literal values', () => {
 		let formData = createFormData({
 		  "dct:title": "Whatever you wrote"
 		})
@@ -35,6 +35,22 @@ describe('Convert Simple Form to RDF Triples', () => {
 				insert: '<http://example.com/my/resource> dct:title "Whatever you wrote" . '
 			});
 	});
+
+	// For the sake of completeness, although it likely won’t come
+	// up often in practice, the character to disambiguate plain
+	// literals is the apostrophe '
+	it('With explicit literal values', () => {
+		let formData = createFormData({
+		  "dct:title '": "Whatever you wrote"
+		})
+
+		expect(rdfkv('http://example.com/my/resource', formData))
+			.toMatchObject({
+				delete: '',
+				insert: '<http://example.com/my/resource> dct:title "Whatever you wrote" . '
+			});
+	});
+
 
 	// refernce a node:
 	// <input name="http://www.w3.org/1999/02/22-rdf-syntax-ns#type :"/>
@@ -91,14 +107,6 @@ describe('Convert Simple Form to RDF Triples', () => {
 	})
 });
 
-
-
-// <input name="http://purl.org/dc/terms/created
-//              ^http://www.w3.org/2001/XMLSchema#date"/>
-
-// For the sake of completeness, although it likely won’t come
-// up often in practice, the character to disambiguate plain
-// literals is the apostrophe '
 
 // reference a blank node:
 // <input name="http://www.w3.org/1999/02/22-rdf-syntax-ns#type _"/>
