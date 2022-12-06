@@ -1,17 +1,17 @@
-# create-svelte
+# RDF-KV.js
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
+> Implements the [RDF-KV spec by Dorian Taylor](https://doriantaylor.com/rdf-kv) for converting HTML form post `FormBody` objects into RDF Triples.
 
-## Creating a project
+## Usage
 
-If you're seeing this, you've probably already done this step. Congrats!
+```
+import rdfkv from 'rdf-kv.js'
 
-```bash
-# create a new project in the current directory
-npm create svelte@latest
-
-# create a new project in my-app
-npm create svelte@latest my-app
+const response = rdfkv(FormBody)
+{
+  delete: `<n-triples>`
+  insert: `<n-triples>`
+}
 ```
 
 ## Developing
