@@ -7,11 +7,14 @@
 ```
 import rdfkv from 'rdf-kv.js'
 
-const response = rdfkv(FormBody)
+const response = rdfkv(subject, FormBody)
+// maybe? rdfkv(subject)(FormBody)
+<!-- returns
 {
   delete: `<n-triples>`
   insert: `<n-triples>`
 }
+-->
 ```
 
 ## Developing
