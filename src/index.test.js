@@ -180,14 +180,35 @@ describe('Convert Simple Forms with more complex data structures to RDF Triples'
 	})
 })
 
+describe('Attaches triple statements to subgraphs', () => {
+	//	which you can naturally omit if you also specify a subject:
+	// <input name="http://example.com/other/resource
+	//              http://purl.org/dc/terms/title
+	//              http://example.com/my/graph"/>
+	it('Assigns subject, predicate, graph', () => {
+		let formData = createFormData({
+		  "http://example.com/other/resource dct:title http://example.com/my/graph": "Whatever you wrote"
+		})
+
+		expect(rdfkv('http://example.com/my/resource', formData))
+			.toMatchObject({
+				delete: '',
+				insert: '<http://example.com/other/resource> dct:title "Whatever you wrote" <http://example.com/my/graph> . '
+			});
+	})
+})
+// triple statements next…
+
 // graphs
 // <input name="http://purl.org/dc/terms/title ' http://example.com/my/graph"/>
 // This would be a rare instance in which you would encounter the need for the '
-// designator, which you can naturally omit if you also specify a subject:
-// <input name="http://example.com/other/resource
-//              http://purl.org/dc/terms/title
-//              http://example.com/my/graph"/>
+// designator
 
+// compound statements;
+// subject, [tuple]
+// inverter, [tuple]
+// merger, [tuple]
+// [tuple], graph
 
 // Control Words
 // TKTK
