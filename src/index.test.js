@@ -108,15 +108,28 @@ describe('Convert Simple Form to RDF Triples', () => {
 });
 
 
+describe('Convert Simple Forms with more complex data structures to RDF Triples', () => {
+	// subjects
+	// <form method="POST" action="http://example.com/my/resource">
+	//   <input type="text" name="http://example.com/other/resource
+	//                            http://purl.org/dc/terms/title"/>
+	//   <button>Set the Title</button>
+	// </form>
+	it('Attaches a literal to a new subject', () => {
+		let formData = createFormData({
+			"http://example.com/other/resource dct:title": "Whatever you wrote"
+		})
+		expect(rdfkv('http://example.com/my/resource', formData))
+			.toMatchObject({
+				delete: '',
+				insert: '<http://example.com/other/resource> dct:title "Whatever you wrote" . '
+			});
+	})
+})
+
 // reference a blank node:
 // <input name="http://www.w3.org/1999/02/22-rdf-syntax-ns#type _"/>
 
-// subjects
-// <form method="POST" action="http://example.com/my/resource">
-//   <input type="text" name="http://example.com/other/resource
-//                            http://purl.org/dc/terms/title"/>
-//   <button>Set the Title</button>
-// </form>
 
 // graphs
 // <input name="http://purl.org/dc/terms/title ' http://example.com/my/graph"/>
