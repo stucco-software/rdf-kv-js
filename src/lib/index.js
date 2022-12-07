@@ -1,11 +1,9 @@
-// Reexport your entry components here
-export const add = (x, y) => x + y
-
 const objectIsResource = (str) => str.endsWith(':')
 const objectIsLiteral = (str) => str.endsWith(`'`)
 const objectHasLang = (str) => str.includes('@')
 const objectHasType = (str) => str.includes('^')
 const objectIsInverted = (str) => str.includes('!')
+const objectIsBNode = (str) => str.includes('_')
 const objectIsDeleted = (str) => str.includes('-')
 const objectReplaces = (str) => str.includes('=')
 
@@ -29,6 +27,16 @@ const parseTuple = (subject, arr, object) => {
       predicate = arr[1]
       object = `<${object}>`
       break;
+    case objectIsBNode(arr[1]):
+      object = `_:${object}`
+      break;
+    case objectIsDeleted(arr[0]):
+      return ''
+      break;
+    case objectReplaces(arr[0]):
+      predicate = arr[1]
+      object = `"${object}"`
+      break;
     default:
       // default case is predicate subject
       // delete and merge will have to be more complex I think
@@ -36,9 +44,8 @@ const parseTuple = (subject, arr, object) => {
       predicate = arr[1]
       object = `"${object}"`
       break;
-      break;
   }
-  return `<${subject}> ${predicate} ${object}`
+  return `<${subject}> ${predicate} ${object} . `
 }
 
 const reducer = (subject) => (acc, cur, i) => {
@@ -47,19 +54,37 @@ const reducer = (subject) => (acc, cur, i) => {
   let predicate
   switch (arr.length) {
     case 2:
-      return `${acc}${parseTuple(subject, arr, object)} . `
+      return `${acc}${parseTuple(subject, arr, object)}`
     default:
       predicate = arr[0]
       return `${acc}<${subject}> ${predicate} "${object}" . `
   }
 }
 
-const reduceEntries = (subject, formData) => [...formData.entries()].reduce(reducer(subject), '')
+const deleter = (subject) => (acc, cur, i) => {
+  let arr = cur[0].split(' ')
+  if (arr.length < 2) { return '' }
+  if (!objectIsDeleted(arr[0]) && !objectReplaces(arr[0])) { return '' }
+  let object = cur[1]
+  let predicate
+  switch (arr.length) {
+    default:
+      predicate = arr[1]
+      if (objectIsDeleted(arr[0])) {
+        return `${acc}<${subject}> ${predicate} "${object}" . `
+      } else {
+        return `${acc}<${subject}> ${predicate} ?o . `
+      }
+  }
+}
+
+const reduceEntryInserts = (subject, formData) => [...formData.entries()].reduce(reducer(subject), '')
+const reduceEntryDeletes = (subject, formData) => [...formData.entries()].reduce(deleter(subject), '')
 
 const rdfkv = (subject, formData) => {
   return {
-    delete: '',
-    insert: reduceEntries(subject, formData)
+    delete: reduceEntryDeletes(subject, formData),
+    insert: reduceEntryInserts(subject, formData)
   }
 }
 

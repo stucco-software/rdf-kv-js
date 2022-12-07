@@ -9,14 +9,6 @@ const createFormData = (obj) => {
 	return formData
 }
 
-describe('sum test', () => {
-	it('adds 1 + 2 to equal 3', () => {
-		expect(add(1, 2)).toBe(3);
-	});
-});
-
-
-
 describe('Convert Simple Form to RDF Triples', () => {
 	// <form method="POST" action="http://example.com/my/resource">
 	//   <input type="text" name="http://purl.org/dc/terms/title"/>
@@ -125,11 +117,68 @@ describe('Convert Simple Forms with more complex data structures to RDF Triples'
 				insert: '<http://example.com/other/resource> dct:title "Whatever you wrote" . '
 			});
 	})
+
+	// Statement Reversal
+	// <input name="! http://purl.org/dc/terms/creator"/>
+	it('Can reverse the relationship between subject and object', () => {
+		let formData = createFormData({
+			"! dct:creator": "http://example.com/my/resource"
+		})
+
+		expect(rdfkv('http://example.com/person', formData))
+			.toMatchObject({
+				delete: '',
+				insert: '<http://example.com/my/resource> dct:creator <http://example.com/person> . '
+			});
+	})
+
+	// reference a blank node:
+	// <input name="http://www.w3.org/1999/02/22-rdf-syntax-ns#type _"/>
+	it('Can reference a blank node', () => {
+		let formData = createFormData({
+			"rdf:type _": "0"
+		})
+
+		expect(rdfkv('http://example.com/my/resource', formData))
+			.toMatchObject({
+				delete: '',
+				insert: '<http://example.com/my/resource> rdf:type _:0 . '
+			});
+	})
 })
 
-// reference a blank node:
-// <input name="http://www.w3.org/1999/02/22-rdf-syntax-ns#type _"/>
+describe('Convert Simple Forms with more complex data structures to RDF Triples', () => {
+	// The default behaviour is to merge relevant resources with the contents
+	// of the form, but if you want to delete statements, prepend with a -. +
+	// is a no-op for the default behaviour.
+	// <input name="- dct:title"/>
+	it('Deletes simple data structures', () => {
+		let formData = createFormData({
+		  "- dct:title": "Whatever you wrote"
+		})
 
+		expect(rdfkv('http://example.com/my/resource', formData))
+			.toMatchObject({
+				delete: '<http://example.com/my/resource> dct:title "Whatever you wrote" . ',
+				insert: ''
+			});
+	})
+
+	// Also consider = for "nuke all subject-predicate pairs of this kind and
+	// replace them with this value"
+	// <input name="= dct:title"/>
+	it('Replaces simple data strctures outright', () => {
+		let formData = createFormData({
+		  "= dct:title": "Whatever you wrote"
+		})
+
+		expect(rdfkv('http://example.com/my/resource', formData))
+			.toMatchObject({
+				delete: '<http://example.com/my/resource> dct:title ?o . ',
+				insert: '<http://example.com/my/resource> dct:title "Whatever you wrote" . ',
+			});
+	})
+})
 
 // graphs
 // <input name="http://purl.org/dc/terms/title ' http://example.com/my/graph"/>
@@ -139,19 +188,6 @@ describe('Convert Simple Forms with more complex data structures to RDF Triples'
 //              http://purl.org/dc/terms/title
 //              http://example.com/my/graph"/>
 
-// Statement Reversal
-// <input name="! http://purl.org/dc/terms/creator"/>
-
-// Add/Subtract
-
-// The default behaviour is to merge relevant resources with the contents
-// of the form, but if you want to delete statements, prepend with a -. +
-// is a no-op for the default behaviour.
-// <input name="- dct:title"/>
-
-// Also consider = for "nuke all subject-predicate pairs of this kind and
-// replace them with this value"
-// <input name="= dct:title"/>
 
 // Control Words
 // TKTK
